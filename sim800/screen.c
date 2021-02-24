@@ -66,7 +66,7 @@ void draw_panel(int x, int y, int width, int height) {
     drawrect(x + 1, y + 1, width - 2, height - 2, COLOR1);
 }
 
-void screen_draw_title() {
+void screen_draw_title(char title[]) {
     // SDL_Surface *banner;
     // banner = SDL_CreateRGBSurface(0, 320, 20, 8, 0, 0, 0, 0);
     // SDL_FillRect(banner, NULL, SDL_MapRGB(banner->format, 255, 255, 0));
@@ -75,8 +75,9 @@ void screen_draw_title() {
     // drawrect(1, 1, WIDTH - 2, 10 - 2, COLOR1);
     draw_panel(0, 0, WIDTH, 10);
 
-    nSDL_DrawString(screen, font, 1, 1,
-                    "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
+    // nSDL_DrawString(screen, font, 1, 1,
+    //                 "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
+    nSDL_DrawString(screen, font, 1, 1, title);
     screen_render();
 }
 

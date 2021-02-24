@@ -15,6 +15,8 @@ char page[] = "landing";
 
 char* form_values[2];
 
+struct simstatus simstatus;
+
 void populate_string_array() {
     for (int i = 0; i < 2; i++) {
         // form_values[i] = (char *)calloc(100, sizeof(char *));
@@ -53,6 +55,36 @@ void page_sms_send() {
     // wait_key_pressed();
 }
 
+void update_title() {
+    // "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX";
+    char title[100];
+    // strcat(*title, "AT:"); // works but bad
+
+    sim_get_status(&simstatus);
+
+    char at[5];
+    if (simstatus.at == 1) {
+        strcpy(at, "OK");
+    } else {
+        strcpy(at, "ERR");
+    }
+
+    char last_stat[5];
+    if (simstatus.last_stat == 1) {
+        strcpy(last_stat, "OK");
+    } else {
+        strcpy(last_stat, "ERR");
+    }
+
+    snprintf(title, sizeof title, "%s%-2s %s%-2s %s%-3d %s%-3d %s%-6s",
+             "AT:", at, "STAT:", last_stat, "BATT:", simstatus.batt,
+             "SIG:", simstatus.sig_strength, "CONN:", simstatus.sig_conn);
+
+    // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
+
+    screen_draw_title(title);
+}
+
 int main(void) {
     // Define Variables
     // char input[1024] = {0};  // Input from the Serial Port
@@ -67,7 +99,8 @@ int main(void) {
 
     // Main Loop
     while (!isKeyPressed(KEY_NSPIRE_ESC)) {
-        screen_draw_title();
+        update_title();
+        // screen_draw_title();
 
         // page_landing();
         if (strcmp(page, "landing") == 0) {
@@ -92,6 +125,8 @@ int main(void) {
 
     // Exiting
     // wait_key_pressed();
+    // free(form_values[0]);
+    // free(form_values[1]);
 
     return 0;
 }
