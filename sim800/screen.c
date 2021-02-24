@@ -89,7 +89,8 @@ struct page screen_make_page() {
     p1.h = HEIGHT - 10;
     p1.next_avail_row = 0;
     p1.row_height = 10;
-    // p1.selected_row = 1;
+    p1.num_rows = 0;
+    p1.selected_row = 0;
     draw_panel(p1.x, p1.y, p1.w, p1.h);
     return p1;
 }
@@ -149,12 +150,13 @@ void screen_draw_input(struct page *p1, char *prompt, char *value,
                     value_buffer);
     if (selected == p1->next_avail_row) {
         // size_t n = sizeof(value) / sizeof(*value);
-        size_t n = strlen(value);
-        drawrect(p1->x + 42 + 6 * n,
-                 p1->y + 3 + p1->row_height * p1->next_avail_row + 5, 5, 1,
-                 FGCOLOR);
+        // size_t n = strlen(value);
+        drawrect(p1->x + 40 + p1->w - 40 - 2 - 5,
+                 p1->y + 3 + p1->row_height * p1->next_avail_row + 2, 5,
+                 p1->row_height - 4, FGCOLOR);
     }
     p1->next_avail_row = p1->next_avail_row + 1;
+    p1->num_rows = p1->num_rows + 1;
 }
 
 void append(char *s, char c) {
@@ -167,7 +169,46 @@ void bkspace(char *s) { s[strlen(s) - 1] = 0; }
 
 // https://stackoverflow.com/questions/1431500/how-can-i-modify-a-2d-array-passed-to-a-function
 // https://stackoverflow.com/questions/13169215/pass-by-reference-string-array-to-function-and-modify-content-in-c
-void screen_handle_input(char *form_values[], int n, int *selected) {
+// void screen_handle_input(char *form_values[], int n, int *selected) {
+//     if (isKeyPressed(KEY_NSPIRE_DOWN)) {
+//         (*selected)++;
+//         if (*selected > n - 1) {
+//             *selected = 0;
+//         }
+//         while (isKeyPressed(KEY_NSPIRE_DOWN))
+//             ;
+//     }
+//     if (isKeyPressed(KEY_NSPIRE_UP)) {
+//         (*selected)--;
+//         if (*selected < 0) {
+//             *selected = 0;
+//         }
+//         while (isKeyPressed(KEY_NSPIRE_UP))
+//             ;
+//     }
+//     if (isKeyPressed(KEY_NSPIRE_DEL)) {
+//         bkspace(form_values[*selected]);
+//         while (isKeyPressed(KEY_NSPIRE_DEL))
+//             ;
+//     }
+//     // if (isKeyPressed(KEY_NSPIRE_A)) {
+//     //     append(form_values[*selected], 'a');
+//     //     while (isKeyPressed(KEY_NSPIRE_A))
+//     //         ;
+//     // }
+//     if (any_key_pressed()) {
+//         if (!isKeyPressed(KEY_NSPIRE_ESC)) {
+//             int adaptive_cursor_state;
+//             append(form_values[*selected],
+//                    nio_ascii_get(&adaptive_cursor_state));
+//             while (any_key_pressed())
+//                 ;
+//         }
+//     }
+// }
+
+void screen_handle_page(struct page *p1, int n, int *selected) {
+    p1->selected_row = *selected;
     if (isKeyPressed(KEY_NSPIRE_DOWN)) {
         (*selected)++;
         if (*selected > n - 1) {
@@ -184,21 +225,18 @@ void screen_handle_input(char *form_values[], int n, int *selected) {
         while (isKeyPressed(KEY_NSPIRE_UP))
             ;
     }
+}
+
+void screen_handle_input(char *form_value) {
     if (isKeyPressed(KEY_NSPIRE_DEL)) {
-        bkspace(form_values[*selected]);
+        bkspace(form_value);
         while (isKeyPressed(KEY_NSPIRE_DEL))
             ;
     }
-    // if (isKeyPressed(KEY_NSPIRE_A)) {
-    //     append(form_values[*selected], 'a');
-    //     while (isKeyPressed(KEY_NSPIRE_A))
-    //         ;
-    // }
     if (any_key_pressed()) {
         if (!isKeyPressed(KEY_NSPIRE_ESC)) {
             int adaptive_cursor_state;
-            append(form_values[*selected],
-                   nio_ascii_get(&adaptive_cursor_state));
+            append(form_value, nio_ascii_get(&adaptive_cursor_state));
             while (any_key_pressed())
                 ;
         }

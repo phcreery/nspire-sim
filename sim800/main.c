@@ -50,8 +50,11 @@ void page_sms_send() {
 
     screen_draw_input(&page1, "TO:", form_values[0], selected);
     screen_draw_input(&page1, "MSG:", form_values[1], selected);
+
     // int n = sizeof(form_values) / sizeof(form_values[0]);
-    screen_handle_input(form_values, 2, &selected);
+    // screen_handle_input(form_values, 2, &selected);
+    screen_handle_page(&page1, 2, &selected);
+    screen_handle_input(form_values[selected]);
     // wait_key_pressed();
 }
 
@@ -115,7 +118,7 @@ int main(void) {
         }
 
         // wait_key_pressed();
-        // msleep(10);
+        msleep(10);
 
         // Reset Keypress Status
         // if (!any_key_pressed()) {
