@@ -14,9 +14,9 @@ struct page {
     int w;
     int h;
     int row_height;      // each row has to have the same height
-    int next_avail_row;  // pixel location
+    int next_avail_row;  // next row index number
     int num_rows;        //
-    int selected_row;    // 0,1,...
+    int selected_row;    // 0,1,... needed??
 };
 
 void screen_init();
@@ -27,6 +27,7 @@ void screen_draw_input();
 void screen_handle_input();
 struct page screen_make_page();
 void screen_clear_page();
+void screen_draw_page_title();
 void screen_handle_page();
 void screen_render();
 #endif

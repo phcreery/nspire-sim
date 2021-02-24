@@ -31,7 +31,8 @@ void page_landing() {
     screen_clear_page(page1);
     char* menu_options[3] = {"SMS", "CALL", "GMS"};
     int n = sizeof(menu_options) / sizeof(menu_options[0]);
-    screen_draw_menu(menu_options, "OPTIONS", n, selected);
+    screen_draw_page_title(&page1, "OPTIONS");
+    screen_draw_menu(&page1, menu_options, n, selected);
     // screen_handle_menu(menu_options, &page, n, &selected);
     screen_handle_page(&page1, 3, &selected, &page, "landing",
                        menu_options[selected]);
@@ -40,9 +41,13 @@ void page_landing() {
 void page_sms() {
     struct page page1 = screen_make_page();
     screen_clear_page(page1);
+
     char* menu_options[2] = {"SMS SEND", "SMS RECEIVE"};
     int n = sizeof(menu_options) / sizeof(menu_options[0]);
-    screen_draw_menu(menu_options, "SMS OPTIONS", n, selected);
+
+    screen_draw_page_title(&page1, "SMS OPTIONS");
+    screen_draw_menu(&page1, menu_options, n, selected);
+
     // screen_handle_menu(menu_options, &page, &selected);
     screen_handle_page(&page1, 2, &selected, &page, "landing",
                        menu_options[selected]);
@@ -52,11 +57,11 @@ void page_sms_send() {
     struct page page1 = screen_make_page();
     screen_clear_page(page1);
 
-    screen_draw_input(&page1, "TO:", form_values[0], selected);
-    screen_draw_input(&page1, "MSG:", form_values[1], selected);
+    screen_draw_page_title(&page1, "COMPOSE");
 
-    // int n = sizeof(form_values) / sizeof(form_values[0]);
-    // screen_handle_input(form_values, 2, &selected);
+    screen_draw_input(&page1, "TO:", form_values[0], selected, 1);
+    screen_draw_input(&page1, "MSG:", form_values[1], selected, 1);
+
     screen_handle_page(&page1, 2, &selected, &page, "SMS SEND", "SMS SENDING");
     screen_handle_input(form_values[selected]);
     // wait_key_pressed();
@@ -93,10 +98,6 @@ void update_title() {
 }
 
 int main(void) {
-    // Define Variables
-    // char input[1024] = {0};  // Input from the Serial Port
-    // char input2[100] = {0}; // Input from the on screen prompt
-
     // Setup Screen
     assert_ndless_rev(874);
     screen_init();
@@ -109,7 +110,6 @@ int main(void) {
         update_title();
         // screen_draw_title();
 
-        // page_landing();
         if (strcmp(page, "landing") == 0) {
             page_landing();
         } else if (strcmp(page, "SMS") == 0) {

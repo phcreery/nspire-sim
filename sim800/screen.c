@@ -10,7 +10,6 @@
 SDL_Surface *screen;
 nSDL_Font *font;
 
-#define PITCH (screen->pitch / 4)
 #define WIDTH 320
 #define HEIGHT 240
 
@@ -97,33 +96,32 @@ struct page screen_make_page() {
 
 void screen_clear_page(struct page p1) { draw_panel(p1.x, p1.y, p1.w, p1.h); }
 
-void screen_draw_menu(char **options, char *title, int n, int sel) {
-    // int sel = 1;
-    nSDL_DrawString(screen, font, 3, 10 + 3, title);
-    drawrect_outline(2, 20 + 2 + 10 * sel, WIDTH - 4, 10, BGCOLOR, COLOR1);
+void screen_draw_page_title(struct page *p1, char *title) {
+    size_t n = strlen(title) * 6;  // ~6 px per char
+    nSDL_DrawString(screen, font, p1->x + 3, p1->y + 3, "<");
+    nSDL_DrawString(screen, font, p1->w - 9, p1->y + 3, ">");
+    nSDL_DrawString(screen, font, p1->x + p1->w / 2 - n / 2, p1->y + 3, title);
+    p1->next_avail_row = p1->next_avail_row + 1;
+}
+
+void screen_draw_menu(struct page *p1, char **options, int n, int sel) {
+    drawrect_outline(
+        p1->x + 2,
+        p1->y + 2 + p1->next_avail_row * p1->row_height + p1->row_height * sel,
+        WIDTH - 4, 10, BGCOLOR, COLOR1);
     // size_t n = sizeof(options) / sizeof(*options);
     for (int i = 0; i < n; i++) {
         nSDL_DrawString(screen, font, 10, 20 + 3 + 10 * i, options[i]);
+        p1->next_avail_row = p1->next_avail_row + 1;
     }
     screen_render();
 }
 
-void screen_handle_menu(char **menu_options, char *menu, int *selected) {
-    if (isKeyPressed(KEY_NSPIRE_ENTER)) {
-        // menu = "sms";
-        strcpy(menu, (menu_options[*selected]));
-        *selected = 0;
-        while (isKeyPressed(KEY_NSPIRE_ENTER))
-            ;
-    }
-}
-
-void screen_draw_input(struct page *p1, char *prompt, char *value,
-                       int selected) {
+void screen_draw_input(struct page *p1, char *prompt, char *value, int selected,
+                       int index) {
     // nSDL_DrawString(screen, font, 3, 10 + 3, "SEND SMS");
     char value_buffer[100];
     strcpy(value_buffer, value);
-    // char *value_buffer = strdup(value);
     nSDL_DrawString(screen, font, p1->x + 2,
                     p1->y + 3 + p1->row_height * p1->next_avail_row, prompt);
     drawrect_outline(p1->x + 40,
@@ -132,7 +130,7 @@ void screen_draw_input(struct page *p1, char *prompt, char *value,
     nSDL_DrawString(screen, font, p1->x + 42,
                     p1->y + 3 + p1->row_height * p1->next_avail_row,
                     value_buffer);
-    if (selected == p1->next_avail_row) {
+    if (selected + index == p1->next_avail_row) {
         // size_t n = sizeof(value) / sizeof(*value);
         // size_t n = strlen(value);
         drawrect(p1->x + 40 + p1->w - 40 - 2 - 5,
@@ -153,46 +151,11 @@ void bkspace(char *s) { s[strlen(s) - 1] = 0; }
 
 // https://stackoverflow.com/questions/1431500/how-can-i-modify-a-2d-array-passed-to-a-function
 // https://stackoverflow.com/questions/13169215/pass-by-reference-string-array-to-function-and-modify-content-in-c
-// void screen_handle_input(char *form_values[], int n, int *selected) {
-//     if (isKeyPressed(KEY_NSPIRE_DOWN)) {
-//         (*selected)++;
-//         if (*selected > n - 1) {
-//             *selected = 0;
-//         }
-//         while (isKeyPressed(KEY_NSPIRE_DOWN))
-//             ;
-//     }
-//     if (isKeyPressed(KEY_NSPIRE_UP)) {
-//         (*selected)--;
-//         if (*selected < 0) {
-//             *selected = 0;
-//         }
-//         while (isKeyPressed(KEY_NSPIRE_UP))
-//             ;
-//     }
-//     if (isKeyPressed(KEY_NSPIRE_DEL)) {
-//         bkspace(form_values[*selected]);
-//         while (isKeyPressed(KEY_NSPIRE_DEL))
-//             ;
-//     }
-//     // if (isKeyPressed(KEY_NSPIRE_A)) {
-//     //     append(form_values[*selected], 'a');
-//     //     while (isKeyPressed(KEY_NSPIRE_A))
-//     //         ;
-//     // }
-//     if (any_key_pressed()) {
-//         if (!isKeyPressed(KEY_NSPIRE_ESC)) {
-//             int adaptive_cursor_state;
-//             append(form_values[*selected],
-//                    nio_ascii_get(&adaptive_cursor_state));
-//             while (any_key_pressed())
-//                 ;
-//         }
-//     }
-// }
-
 void screen_handle_page(struct page *p1, int n, int *selected, char *dest,
                         char *prev, char *next) {
+    // Handle actions for pages
+    // the next/prev strings will be copied into the dest pointer when the
+    // enter/back buttoms are pressed
     p1->selected_row = *selected;
     if (isKeyPressed(KEY_NSPIRE_DOWN)) {
         (*selected)++;
@@ -224,7 +187,18 @@ void screen_handle_page(struct page *p1, int n, int *selected, char *dest,
     }
 }
 
+// Not even needed??
+void screen_handle_menu(char **menu_options, char *menu, int *selected) {
+    if (isKeyPressed(KEY_NSPIRE_ENTER)) {
+        strcpy(menu, (menu_options[*selected]));
+        *selected = 0;
+        while (isKeyPressed(KEY_NSPIRE_ENTER))
+            ;
+    }
+}
+
 void screen_handle_input(char *form_value) {
+    // Handle actions for input boxes
     if (isKeyPressed(KEY_NSPIRE_DEL)) {
         bkspace(form_value);
         while (isKeyPressed(KEY_NSPIRE_DEL))
