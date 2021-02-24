@@ -108,23 +108,7 @@ void screen_draw_menu(char **options, char *title, int n, int sel) {
     screen_render();
 }
 
-void screen_handle_menu(char **menu_options, char *menu, int n, int *selected) {
-    if (isKeyPressed(KEY_NSPIRE_DOWN)) {
-        (*selected)++;
-        if (*selected > n - 1) {
-            *selected = n - 1;
-        }
-        while (isKeyPressed(KEY_NSPIRE_DOWN))
-            ;
-    }
-    if (isKeyPressed(KEY_NSPIRE_UP)) {
-        (*selected)--;
-        if (*selected < 0) {
-            *selected = 0;
-        }
-        while (isKeyPressed(KEY_NSPIRE_UP))
-            ;
-    }
+void screen_handle_menu(char **menu_options, char *menu, int *selected) {
     if (isKeyPressed(KEY_NSPIRE_ENTER)) {
         // menu = "sms";
         strcpy(menu, (menu_options[*selected]));
@@ -207,7 +191,8 @@ void bkspace(char *s) { s[strlen(s) - 1] = 0; }
 //     }
 // }
 
-void screen_handle_page(struct page *p1, int n, int *selected) {
+void screen_handle_page(struct page *p1, int n, int *selected, char *dest,
+                        char *prev, char *next) {
     p1->selected_row = *selected;
     if (isKeyPressed(KEY_NSPIRE_DOWN)) {
         (*selected)++;
@@ -225,6 +210,18 @@ void screen_handle_page(struct page *p1, int n, int *selected) {
         while (isKeyPressed(KEY_NSPIRE_UP))
             ;
     }
+
+    if (isKeyPressed(KEY_NSPIRE_ENTER)) {
+        *selected = 0;
+        strcpy(dest, next);
+        while (isKeyPressed(KEY_NSPIRE_ENTER))
+            ;
+    } else if (isKeyPressed(KEY_NSPIRE_MENU)) {
+        *selected = 0;
+        strcpy(dest, prev);
+        while (isKeyPressed(KEY_NSPIRE_MENU))
+            ;
+    }
 }
 
 void screen_handle_input(char *form_value) {
@@ -232,8 +229,7 @@ void screen_handle_input(char *form_value) {
         bkspace(form_value);
         while (isKeyPressed(KEY_NSPIRE_DEL))
             ;
-    }
-    if (any_key_pressed()) {
+    } else if (any_key_pressed()) {
         if (!isKeyPressed(KEY_NSPIRE_ESC)) {
             int adaptive_cursor_state;
             append(form_value, nio_ascii_get(&adaptive_cursor_state));

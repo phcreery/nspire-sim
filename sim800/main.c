@@ -23,7 +23,7 @@ void populate_string_array() {
         form_values[i] = (char*)malloc(100);
     }
     strcpy(form_values[0], "806437513322\0");
-    strcpy(form_values[1], "what i s uppp\0");
+    strcpy(form_values[1], "what is uppp\0");
 }
 
 void page_landing() {
@@ -32,7 +32,9 @@ void page_landing() {
     char* menu_options[3] = {"SMS", "CALL", "GMS"};
     int n = sizeof(menu_options) / sizeof(menu_options[0]);
     screen_draw_menu(menu_options, "OPTIONS", n, selected);
-    screen_handle_menu(menu_options, &page, n, &selected);
+    // screen_handle_menu(menu_options, &page, n, &selected);
+    screen_handle_page(&page1, 3, &selected, &page, "landing",
+                       menu_options[selected]);
 }
 
 void page_sms() {
@@ -41,7 +43,9 @@ void page_sms() {
     char* menu_options[2] = {"SMS SEND", "SMS RECEIVE"};
     int n = sizeof(menu_options) / sizeof(menu_options[0]);
     screen_draw_menu(menu_options, "SMS OPTIONS", n, selected);
-    screen_handle_menu(menu_options, &page, n, &selected);
+    // screen_handle_menu(menu_options, &page, &selected);
+    screen_handle_page(&page1, 2, &selected, &page, "landing",
+                       menu_options[selected]);
 }
 
 void page_sms_send() {
@@ -53,7 +57,7 @@ void page_sms_send() {
 
     // int n = sizeof(form_values) / sizeof(form_values[0]);
     // screen_handle_input(form_values, 2, &selected);
-    screen_handle_page(&page1, 2, &selected);
+    screen_handle_page(&page1, 2, &selected, &page, "SMS SEND", "SMS SENDING");
     screen_handle_input(form_values[selected]);
     // wait_key_pressed();
 }
@@ -111,8 +115,9 @@ int main(void) {
         } else if (strcmp(page, "SMS") == 0) {
             page_sms();
         } else if (strcmp(page, "SMS SEND") == 0) {
-            // selected = 1;
             page_sms_send();
+        } else if (strcmp(page, "SMS SENDING") == 0) {
+            return 0;
         } else {
             return 0;
         }
