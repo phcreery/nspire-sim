@@ -11,7 +11,7 @@
 
 int key_already_pressed = 0;
 int selected = 0;
-char page[] = "landing";
+char page[20] = "attach";
 
 char* form_values[2];
 
@@ -26,6 +26,14 @@ void populate_string_array() {
     strcpy(form_values[1], "what is uppp\0");
 }
 
+void page_attach() {
+    struct page page1 = screen_make_page();
+    screen_clear_page(page1);
+    screen_draw_page_text(&page1, "ATTACH SIM & PRESS (enter)");
+    // screen_handle_selection(&page1, 0, &selected);
+    screen_handle_page(&page1, &selected, &page, "attach", "landing");
+}
+
 void page_landing() {
     struct page page1 = screen_make_page();
     screen_clear_page(page1);
@@ -34,7 +42,8 @@ void page_landing() {
     screen_draw_page_title(&page1, "OPTIONS");
     screen_draw_menu(&page1, menu_options, n, selected);
     // screen_handle_menu(menu_options, &page, n, &selected);
-    screen_handle_page(&page1, 3, &selected, &page, "landing",
+    screen_handle_selection(&page1, 3, &selected);
+    screen_handle_page(&page1, &selected, &page, "attach",
                        menu_options[selected]);
 }
 
@@ -49,7 +58,8 @@ void page_sms() {
     screen_draw_menu(&page1, menu_options, n, selected);
 
     // screen_handle_menu(menu_options, &page, &selected);
-    screen_handle_page(&page1, 2, &selected, &page, "landing",
+    screen_handle_selection(&page1, 2, &selected);
+    screen_handle_page(&page1, &selected, &page, "landing",
                        menu_options[selected]);
 }
 
@@ -59,12 +69,42 @@ void page_sms_send() {
 
     screen_draw_page_title(&page1, "COMPOSE");
 
-    screen_draw_input(&page1, "TO:", form_values[0], selected, 1);
-    screen_draw_input(&page1, "MSG:", form_values[1], selected, 1);
+    // +1 since there is a title row above
+    screen_draw_input(&page1, "TO:", form_values[0], selected + 1);
+    screen_draw_input(&page1, "MSG:", form_values[1], selected + 1);
 
-    screen_handle_page(&page1, 2, &selected, &page, "SMS SEND", "SMS SENDING");
+    screen_handle_page(&page1, &selected, &page, "SMS SEND", "SMS SENDING");
+    screen_handle_selection(&page1, 2, &selected);
     screen_handle_input(form_values[selected]);
     // wait_key_pressed();
+}
+
+void page_sms_sending() {
+    struct page page1 = screen_make_page();
+    screen_clear_page(page1);
+
+    screen_draw_page_title(&page1, "SENDING...");
+    uart_printf("Sending...\n");
+    int status;
+    status = sim_send_text();
+    // uart_printf("%.*s\n", 20, resp);
+    uart_printf("status: ");
+    uart_printf("%d\n", status);
+    if (status == 1) {
+        uart_printf("Send success\n");
+        strcpy(page, "SMS SEND SUCCESS");
+    }
+    // screen_draw_page_text(&page1, resp);
+}
+
+void page_sms_send_success() {
+    struct page page1 = screen_make_page();
+    screen_clear_page(page1);
+
+    screen_draw_page_title(&page1, "SENDING SUCCESS");
+
+    // screen_draw_page_text(&page1, resp);
+    screen_handle_page(&page1, &selected, &page, "landing", "landing");
 }
 
 void update_title() {
@@ -112,12 +152,17 @@ int main(void) {
 
         if (strcmp(page, "landing") == 0) {
             page_landing();
+        } else if (strcmp(page, "attach") == 0) {
+            page_attach();
         } else if (strcmp(page, "SMS") == 0) {
             page_sms();
         } else if (strcmp(page, "SMS SEND") == 0) {
             page_sms_send();
         } else if (strcmp(page, "SMS SENDING") == 0) {
-            return 0;
+            page_sms_sending();
+            // return 0;
+        } else if (strcmp(page, "SMS SEND SUCCESS") == 0) {
+            page_sms_send_success();
         } else {
             return 0;
         }

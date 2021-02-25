@@ -28,6 +28,8 @@ void screen_handle_input();
 struct page screen_make_page();
 void screen_clear_page();
 void screen_draw_page_title();
+void screen_draw_page_text();
 void screen_handle_page();
+void screen_handle_selection();
 void screen_render();
 #endif

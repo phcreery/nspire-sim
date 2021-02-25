@@ -104,6 +104,12 @@ void screen_draw_page_title(struct page *p1, char *title) {
     p1->next_avail_row = p1->next_avail_row + 1;
 }
 
+void screen_draw_page_text(struct page *p1, char *title) {
+    nSDL_DrawString(screen, font, p1->x + 3,
+                    p1->y + 3 + p1->next_avail_row * p1->row_height, title);
+    p1->next_avail_row = p1->next_avail_row + 1;
+}
+
 void screen_draw_menu(struct page *p1, char **options, int n, int sel) {
     drawrect_outline(
         p1->x + 2,
@@ -117,8 +123,8 @@ void screen_draw_menu(struct page *p1, char **options, int n, int sel) {
     screen_render();
 }
 
-void screen_draw_input(struct page *p1, char *prompt, char *value, int selected,
-                       int index) {
+void screen_draw_input(struct page *p1, char *prompt, char *value,
+                       int selected) {
     // nSDL_DrawString(screen, font, 3, 10 + 3, "SEND SMS");
     char value_buffer[100];
     strcpy(value_buffer, value);
@@ -130,7 +136,7 @@ void screen_draw_input(struct page *p1, char *prompt, char *value, int selected,
     nSDL_DrawString(screen, font, p1->x + 42,
                     p1->y + 3 + p1->row_height * p1->next_avail_row,
                     value_buffer);
-    if (selected + index == p1->next_avail_row) {
+    if (selected == p1->next_avail_row) {
         // size_t n = sizeof(value) / sizeof(*value);
         // size_t n = strlen(value);
         drawrect(p1->x + 40 + p1->w - 40 - 2 - 5,
@@ -151,11 +157,27 @@ void bkspace(char *s) { s[strlen(s) - 1] = 0; }
 
 // https://stackoverflow.com/questions/1431500/how-can-i-modify-a-2d-array-passed-to-a-function
 // https://stackoverflow.com/questions/13169215/pass-by-reference-string-array-to-function-and-modify-content-in-c
-void screen_handle_page(struct page *p1, int n, int *selected, char *dest,
-                        char *prev, char *next) {
+void screen_handle_page(struct page *p1, int *selected, char *dest, char *prev,
+                        char *next) {
     // Handle actions for pages
     // the next/prev strings will be copied into the dest pointer when the
     // enter/back buttoms are pressed
+    p1->selected_row = *selected;
+    if (isKeyPressed(KEY_NSPIRE_ENTER)) {
+        *selected = 0;
+        strcpy(dest, next);
+        while (isKeyPressed(KEY_NSPIRE_ENTER))
+            ;
+    } else if (isKeyPressed(KEY_NSPIRE_MENU)) {
+        *selected = 0;
+        strcpy(dest, prev);
+        while (isKeyPressed(KEY_NSPIRE_MENU))
+            ;
+    }
+}
+
+void screen_handle_selection(struct page *p1, int n, int *selected) {
+    // Handle actions for selection options
     p1->selected_row = *selected;
     if (isKeyPressed(KEY_NSPIRE_DOWN)) {
         (*selected)++;
@@ -171,18 +193,6 @@ void screen_handle_page(struct page *p1, int n, int *selected, char *dest,
             *selected = 0;
         }
         while (isKeyPressed(KEY_NSPIRE_UP))
-            ;
-    }
-
-    if (isKeyPressed(KEY_NSPIRE_ENTER)) {
-        *selected = 0;
-        strcpy(dest, next);
-        while (isKeyPressed(KEY_NSPIRE_ENTER))
-            ;
-    } else if (isKeyPressed(KEY_NSPIRE_MENU)) {
-        *selected = 0;
-        strcpy(dest, prev);
-        while (isKeyPressed(KEY_NSPIRE_MENU))
             ;
     }
 }
