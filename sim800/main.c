@@ -87,6 +87,14 @@ void page_sms_sending() {
     uart_printf("Sending...\n");
     int status;
     status = sim_send_text();
+
+    char* hist[20];
+    get_history(hist);
+    for (int i = 0; i < 20; i++) {
+        uart_printf("%d: %s\n", i, hist[i]);
+        screen_draw_page_text(&page1, hist[i]);
+    }
+
     // uart_printf("%.*s\n", 20, resp);
     uart_printf("status: ");
     uart_printf("%d\n", status);
@@ -94,7 +102,6 @@ void page_sms_sending() {
         uart_printf("Send success\n");
         strcpy(page, "SMS SEND SUCCESS");
     }
-    // screen_draw_page_text(&page1, resp);
 }
 
 void page_sms_send_success() {
@@ -103,7 +110,13 @@ void page_sms_send_success() {
 
     screen_draw_page_title(&page1, "SENDING SUCCESS");
 
-    // screen_draw_page_text(&page1, resp);
+    char* hist[20];
+    get_history(hist);
+    for (int i = 0; i < 20; i++) {
+        uart_printf("%d: %s\n", i, hist[i]);
+        screen_draw_page_text(&page1, hist[i]);
+    }
+
     screen_handle_page(&page1, &selected, &page, "landing", "landing");
 }
 
@@ -144,6 +157,7 @@ int main(void) {
     // uart_printf("%.*s\n", (int)sizeof(form_values[0]),
     // form_values[0]);  // Prints a string
     populate_string_array();
+    populate_history();
 
     // Main Loop
     while (!isKeyPressed(KEY_NSPIRE_ESC)) {

@@ -18,5 +18,7 @@ struct simstatus {
 
 void sim_get_status();
 int sim_send_text();
+void get_history();
+void populate_history();
 
 #endif
