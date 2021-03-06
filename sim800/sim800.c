@@ -99,7 +99,11 @@ void sim_get_status(struct simstatus *ss) {
     ss->sig_conn = conn;
 }
 
-int sim_send_text() {  // returns 0 for processing, 1 for success, 2 for error?
+// https://github.com/cristiansteib/Sim800l/blob/master/Sim800l.cpp
+// returns 0 for processing, 1 for success, -1 for error?
+// see https://github.com/carrascoacd/ArduinoSIM800L/blob/master/src/Result.h
+// for better implimentation
+int sim_send_text() {
     static bool is_sending = 0;
     static bool step = 0;
     uart_printf("a\n");
@@ -128,3 +132,6 @@ int sim_send_text() {  // returns 0 for processing, 1 for success, 2 for error?
 
     return 0;
 }
+
+// https://github.com/carrascoacd/ArduinoSIM800L
+void sim_get_http() {}

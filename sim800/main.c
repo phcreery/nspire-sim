@@ -23,7 +23,7 @@ void populate_string_array() {
         form_values[i] = (char*)malloc(100);
     }
     strcpy(form_values[0], "806437513322\0");
-    strcpy(form_values[1], "what is uppp\0");
+    strcpy(form_values[1], "what is up\0");
 }
 
 void page_attach() {
@@ -37,12 +37,12 @@ void page_attach() {
 void page_landing() {
     struct page page1 = screen_make_page();
     screen_clear_page(page1);
-    char* menu_options[3] = {"SMS", "CALL", "GMS"};
+    char* menu_options[4] = {"SMS", "CALL", "GPRS/HTTP", "CONFIG"};
     int n = sizeof(menu_options) / sizeof(menu_options[0]);
     screen_draw_page_title(&page1, "OPTIONS");
     screen_draw_menu(&page1, menu_options, n, selected);
     // screen_handle_menu(menu_options, &page, n, &selected);
-    screen_handle_selection(&page1, 3, &selected);
+    screen_handle_selection(&page1, n, &selected);
     screen_handle_page(&page1, &selected, &page, "attach",
                        menu_options[selected]);
 }
@@ -162,8 +162,8 @@ int main(void) {
     screen_init();
     // uart_printf("%.*s\n", (int)sizeof(form_values[0]),
     // form_values[0]);  // Prints a string
-    populate_string_array();
-    populate_history();
+    populate_string_array();  // empties and inits form array
+    populate_history();       // emptied and inits history array
 
     // Main Loop
     while (!isKeyPressed(KEY_NSPIRE_ESC)) {
@@ -184,6 +184,7 @@ int main(void) {
         } else if (strcmp(page, "SMS SEND SUCCESS") == 0) {
             page_sms_send_success();
         } else {
+            // strcpy(page, "attach");
             return 0;
         }
 
