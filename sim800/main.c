@@ -122,30 +122,36 @@ void page_sms_send_success() {
 
 void update_title() {
     // "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX";
-    char title[100];
     // strcat(*title, "AT:"); // works but bad
+    static char title[100];
+    static int ticks = 100;
 
-    sim_get_status(&simstatus);
+    if (ticks > 100) {  // 100 ticks ~= 2.5s (3/6/21)
+        ticks = 0;
+        // uart_printf("updating title\n");
+        sim_get_status(&simstatus);
 
-    char at[5];
-    if (simstatus.at == 1) {
-        strcpy(at, "OK");
-    } else {
-        strcpy(at, "ERR");
+        char at[5];
+        if (simstatus.at == 1) {
+            strcpy(at, "OK");
+        } else {
+            strcpy(at, "ERR");
+        }
+
+        char last_stat[5];
+        if (simstatus.last_stat == 1) {
+            strcpy(last_stat, "OK");
+        } else {
+            strcpy(last_stat, "ERR");
+        }
+
+        snprintf(title, sizeof title, "%s%-2s %s%-2s %s%-3d %s%-3d %s%-6s",
+                 "AT:", at, "STAT:", last_stat, "BATT:", simstatus.batt,
+                 "SIG:", simstatus.sig_strength, "CONN:", simstatus.sig_conn);
+
+        // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
     }
-
-    char last_stat[5];
-    if (simstatus.last_stat == 1) {
-        strcpy(last_stat, "OK");
-    } else {
-        strcpy(last_stat, "ERR");
-    }
-
-    snprintf(title, sizeof title, "%s%-2s %s%-2s %s%-3d %s%-3d %s%-6s",
-             "AT:", at, "STAT:", last_stat, "BATT:", simstatus.batt,
-             "SIG:", simstatus.sig_strength, "CONN:", simstatus.sig_conn);
-
-    // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
+    ticks++;
 
     screen_draw_title(title);
 }
