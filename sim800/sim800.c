@@ -50,7 +50,7 @@ char *sim_request(char *command) {
     char *str = malloc(20 * sizeof(char));
     strcpy(str, response);
     history_append(str);
-    print_history();
+    // print_history();
     return str;
 }
 
@@ -58,7 +58,7 @@ int comp_request(char command[], char expect[]) {
     // char command[] = "AT?\0";
     char *response = sim_request(command);
     if (strcmp(response, expect) == 0) {
-        uart_printf("response is okay.\n");
+        // uart_printf("response is okay.\n");
         free(response);
         return 1;
     }
@@ -66,7 +66,7 @@ int comp_request(char command[], char expect[]) {
     return 0;
 }
 
-int sim_is_ok() { return 0; }
+int sim_is_ok() { return comp_request("AT\0", "__AT__OK__\0"); }
 int sim_get_batt() { return 0; }
 int sim_get_sig_strength() { return 0; }
 
@@ -106,10 +106,10 @@ void sim_get_status(struct simstatus *ss) {
 int sim_send_text() {
     static bool is_sending = 0;
     static bool step = 0;
-    uart_printf("a\n");
+    // uart_printf("a\n");
 
     if (is_sending == 0) {
-        uart_printf("b0\n");
+        // uart_printf("b0\n");
         // populate_history();
         // msleep(1000);
         // pass, let screen update?
@@ -117,9 +117,9 @@ int sim_send_text() {
         return 0;
     } else if (is_sending == 1) {
         if (step == 0) {
-            uart_printf("b1 Step 0\n");
-            if (comp_request("AT?\0", "__AT__OK__\0") == 1) {
-                uart_printf("response is really okay.\n");
+            // uart_printf("b1 Step 0\n");
+            if (sim_is_ok() == 1) {
+                // uart_printf("response is really okay.\n");
                 is_sending = 0;
                 return 1;
             } else {

@@ -84,7 +84,7 @@ void page_sms_sending() {
     screen_clear_page(page1);
 
     screen_draw_page_title(&page1, "SENDING...");
-    uart_printf("Sending...\n");
+    // uart_printf("Sending...\n");
     int status;
     status = sim_send_text();
 
@@ -96,8 +96,8 @@ void page_sms_sending() {
     }
 
     // uart_printf("%.*s\n", 20, resp);
-    uart_printf("status: ");
-    uart_printf("%d\n", status);
+    // uart_printf("status: ");
+    // uart_printf("%d\n", status);
     if (status == 1) {
         uart_printf("Send success\n");
         strcpy(page, "SMS SEND SUCCESS");
@@ -113,7 +113,7 @@ void page_sms_send_success() {
     char* hist[20];
     get_history(hist);
     for (int i = 0; i < 20; i++) {
-        uart_printf("%d: %s\n", i, hist[i]);
+        // uart_printf("%d: %s\n", i, hist[i]);
         screen_draw_page_text(&page1, hist[i]);
     }
 
@@ -121,6 +121,65 @@ void page_sms_send_success() {
 }
 
 void update_title() {
+    // "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX";
+    // strcat(*title, "AT:"); // works but bad
+    static char title[100];
+    static int ticks = 100;
+
+    if (ticks > 100) {  // 100 ticks ~= 2.5s (3/6/21)
+        ticks = 0;
+        // uart_printf("updating title\n");
+        sim_get_status(&simstatus);
+
+        char at[5];
+        if (simstatus.at == 1) {
+            strcpy(at, "OK");
+        } else {
+            strcpy(at, "ERR");
+        }
+
+        char last_stat[5];
+        if (simstatus.last_stat == 1) {
+            strcpy(last_stat, "OK");
+        } else {
+            strcpy(last_stat, "ERR");
+        }
+
+        snprintf(title, sizeof title, "%s%-2s %s%-2s %s%-3d %s%-3d %s%-6s",
+                 "AT:", at, "STAT:", last_stat, "BATT:", simstatus.batt,
+                 "SIG:", simstatus.sig_strength, "CONN:", simstatus.sig_conn);
+
+        // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
+    }
+    ticks++;
+
+    screen_draw_title(title);
+}
+
+void sim_handler() {
+    update_title();
+    // screen_draw_title();
+
+    if (strcmp(page, "landing") == 0) {
+        page_landing();
+    } else if (strcmp(page, "attach") == 0) {
+        page_attach();
+    } else if (strcmp(page, "SMS") == 0) {
+        page_sms();
+    } else if (strcmp(page, "SMS SEND") == 0) {
+        page_sms_send();
+    } else if (strcmp(page, "SMS SENDING") == 0) {
+        page_sms_sending();
+        // return 0;
+    } else if (strcmp(page, "SMS SEND SUCCESS") == 0) {
+        page_sms_send_success();
+    } else {
+        strcpy(page, "attach");
+        // return 0;
+    }
+}
+
+void sim_tester_status() {
     // "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX";
     // strcat(*title, "AT:"); // works but bad
     static char title[100];
@@ -167,34 +226,10 @@ int main(void) {
 
     // Main Loop
     while (!isKeyPressed(KEY_NSPIRE_ESC)) {
-        update_title();
-        // screen_draw_title();
+        sim_handler();
+        sim_tester_status();
 
-        if (strcmp(page, "landing") == 0) {
-            page_landing();
-        } else if (strcmp(page, "attach") == 0) {
-            page_attach();
-        } else if (strcmp(page, "SMS") == 0) {
-            page_sms();
-        } else if (strcmp(page, "SMS SEND") == 0) {
-            page_sms_send();
-        } else if (strcmp(page, "SMS SENDING") == 0) {
-            page_sms_sending();
-            // return 0;
-        } else if (strcmp(page, "SMS SEND SUCCESS") == 0) {
-            page_sms_send_success();
-        } else {
-            // strcpy(page, "attach");
-            return 0;
-        }
-
-        // wait_key_pressed();
         msleep(10);
-
-        // Reset Keypress Status
-        // if (!any_key_pressed()) {
-        //     key_already_pressed = 0;
-        // }
     }
 
     // Exiting
