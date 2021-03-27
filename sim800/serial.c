@@ -30,12 +30,7 @@ char uart_getchar_mdf(void) {
 }
 
 char uart_getchar_mdf_test(void) {
-    // volatile unsigned *recv_buffer_reg = (unsigned *)0x90020000;
-    // while (!uart_ready())
-    //    idle();
-    // char tmp = *recv_buffer_reg;
     char tmp = 'A' + (random() % 26);
-    // uart_putchar(tmp);
     return tmp;
 }
 
@@ -123,25 +118,25 @@ char *uart_getsn_mdf_test(char *str, int num) {
     return str;
 }
 
-char *uart_getsn_mdf2(char *str, int num) {
-    int i;
-    for (i = 0; i < num - 1; i++) {
-        // char c = uart_getchar();
-        char c = uart_getchar_mdf();
-        cprint_ascii(c);
-        str[i] = c;
-        if (c == '\b') {
-            // uart_puts(" \b");
-            i -= 2;
-        } else if (c == '\r') {
-            str[i] = 0;
-            uart_putchar('\n');
-            return str;
-        }
-    }
-    str[num] = 0;
-    return str;
-}
+// char *uart_getsn_mdf2(char *str, int num) {
+//     int i;
+//     for (i = 0; i < num - 1; i++) {
+//         // char c = uart_getchar();
+//         char c = uart_getchar_mdf();
+//         cprint_ascii(c);
+//         str[i] = c;
+//         if (c == '\b') {
+//             // uart_puts(" \b");
+//             i -= 2;
+//         } else if (c == '\r') {
+//             str[i] = 0;
+//             uart_putchar('\n');
+//             return str;
+//         }
+//     }
+//     str[num] = 0;
+//     return str;
+// }
 
 // Return the number of char in a car array
 int numberOfCharsInArray(char *array) { return strlen(array); }
@@ -162,7 +157,7 @@ char *serial_rec(char *str) {
     return str;
 }
 
-// Get UART Data (non-blocking)
+// Get UART Data (blocking)
 char *await_serial_rec(char *str) {
     while (!uart_ready() && releaseFunc()) {
     }
@@ -170,13 +165,12 @@ char *await_serial_rec(char *str) {
     return str;
 }
 
-// Get UART Data (non-blocking)
+// UART Request (blocking)
 char *serial_request(char *command, char *str) {
     serial_send(command);
 
     while (!uart_ready() && releaseFunc()) {
     }
-
     uart_getsn_mdf(str, 1024);
     return str;
 }
