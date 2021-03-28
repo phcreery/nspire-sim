@@ -138,16 +138,24 @@ void update_title() {
             strcpy(at, "ERR");
         }
 
-        char last_stat[5];
+        static char last_stat[5];
         if (simstatus.last_stat == 1) {
             strcpy(last_stat, "OK");
         } else {
             strcpy(last_stat, "ERR");
         }
 
-        snprintf(title, sizeof title, "%s%-2s %s%-2s %s%-3d %s%-3d %s%-6s",
-                 "AT:", at, "STAT:", last_stat, "BATT:", simstatus.batt,
-                 "SIG:", simstatus.sig_strength, "CONN:", simstatus.sig_conn);
+        static char sim[5];
+        if (simstatus.sim == 1) {
+            strcpy(sim, "OK");
+        } else {
+            strcpy(sim, "ERR");
+        }
+
+        snprintf(title, sizeof title,
+                 "%s%-2s %s%-2s %s%-2s %s%-2d %s%-2d %s%-6s", "AT:", at,
+                 "STAT:", last_stat, "SIM:", sim, "BAT:", simstatus.batt,
+                 "SIG:", simstatus.sig_strength, "CON:", simstatus.sig_conn);
 
         // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
     }
@@ -179,42 +187,6 @@ void sim_handler() {
     }
 }
 
-void sim_tester_status() {
-    // "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX";
-    // strcat(*title, "AT:"); // works but bad
-    static char title[100];
-    static int ticks = 100;
-
-    if (ticks > 100) {  // 100 ticks ~= 2.5s (3/6/21)
-        ticks = 0;
-        // uart_printf("updating title\n");
-        sim_get_status(&simstatus);
-
-        char at[5];
-        if (simstatus.at == 1) {
-            strcpy(at, "OK");
-        } else {
-            strcpy(at, "ERR");
-        }
-
-        char last_stat[5];
-        if (simstatus.last_stat == 1) {
-            strcpy(last_stat, "OK");
-        } else {
-            strcpy(last_stat, "ERR");
-        }
-
-        snprintf(title, sizeof title, "%s%-2s %s%-2s %s%-3d %s%-3d %s%-6s",
-                 "AT:", at, "STAT:", last_stat, "BATT:", simstatus.batt,
-                 "SIG:", simstatus.sig_strength, "CONN:", simstatus.sig_conn);
-
-        // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
-    }
-    ticks++;
-
-    screen_draw_title(title);
-}
-
 int main(void) {
     // Setup Screen
     assert_ndless_rev(874);
@@ -227,9 +199,9 @@ int main(void) {
     // Main Loop
     while (!isKeyPressed(KEY_NSPIRE_ESC)) {
         sim_handler();
-        sim_tester_status();
+        // sim_tester_status();
 
-        msleep(10);
+        msleep(20);
     }
 
     // Exiting

@@ -4,6 +4,8 @@
 #include <os.h>
 #include <string.h>
 
+#include "serial.h"
+
 int last_stat = 0;
 int com_lock = 0;
 
@@ -39,34 +41,57 @@ void history_append(char *string) {
     console_history_buffer[0] = string;
 }
 
-char *sim_request(char *command) {
+// char *serial_request(char *command, char *str)
+char *sim_request(char *command, char *response) {
     history_append(command);
 
-    char response[20];
-    // response = await_serial_rec(command);
-    strcpy(response, "__AT__OK__\0");
+    // char command[100] = {0};
+    // char response[1024] = {0};
+    serial_request(command, response);
+    // strcpy(response, "__AT__OK__\0");
     // history_append(response);
 
-    char *str = malloc(20 * sizeof(char));
-    strcpy(str, response);
-    history_append(str);
+    // char *str = malloc(20 * sizeof(char));
+    // strcpy(str, response);
+    history_append(response);
     // print_history();
-    return str;
+    return response;
 }
 
 int comp_request(char command[], char expect[]) {
     // char command[] = "AT?\0";
-    char *response = sim_request(command);
+    char response[1024] = {0};
+    sim_request(command, response);
     if (strcmp(response, expect) == 0) {
         // uart_printf("response is okay.\n");
-        free(response);
+        // free(response);
         return 1;
     }
-    free(response);
+    // free(response);
     return 0;
 }
 
-int sim_is_ok() { return comp_request("AT\0", "__AT__OK__\0"); }
+int is_OK(char command[]) {
+    if (strstr(command, "____OK") != NULL) {
+        return 1;
+    }
+    return 0;  // else
+}
+
+int at_is_ok() {
+    char response[1024] = {0};
+    sim_request("AT\r", response);
+    return is_OK(response);
+}
+
+int sim_is_ok() {
+    char response[1024] = {0};
+    sim_request("AT+CPIN?\r", response);
+    if (strstr(response, "READY") != NULL) {
+        return 1;
+    }
+    return 0;
+}
 int sim_get_batt() { return 0; }
 int sim_get_sig_strength() { return 0; }
 
@@ -85,14 +110,17 @@ void sim_get_conn(char *str) {  //
 
 void sim_get_status(struct simstatus *ss) {
     static int at;
+    static int sim;
     static int batt;
     static int st;
     static char conn[20];
-    at = sim_is_ok();
+    at = at_is_ok();
+    sim = sim_is_ok();
     batt = sim_get_batt();
     st = sim_get_sig_strength();
     sim_get_conn(conn);
     ss->at = at;
+    ss->sim = sim;
     ss->last_stat = last_stat;
     ss->batt = batt;
     ss->sig_strength = st;
