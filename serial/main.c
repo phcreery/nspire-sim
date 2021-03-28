@@ -56,6 +56,16 @@ int main(void) {
             key_already_pressed = 1;
         }
 
+        // 26 / 0x1A / SUB - ASCII CHAR
+        if (isKeyPressed(KEY_NSPIRE_RIGHT) && !key_already_pressed) {
+            // char response[1024] = {0};
+            // serial_request('\032', response);  // or '\x1A' or (char)26?
+            // nio_printf(response);
+            // nio_printf("\n");
+            uart_printf("%c", 26);
+            key_already_pressed = 1;
+        }
+
         // Reset Keypress Status
         if (!any_key_pressed()) {
             key_already_pressed = 0;
