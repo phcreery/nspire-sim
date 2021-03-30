@@ -3,118 +3,67 @@
 #include <stdlib.h>
 #include <string.h>
 
-int last_stat = 0;
+#define HIST_LENGTH 20
 
-struct simstatus {
-    int at;
-    int last_stat;
-    int batt;
-    int sig_strength;
-    char *sig_conn;
-};
+// char *console_history_buffer[24] = {
+//     "First entry", "Second entry", "Third entry", "4 entry", "5 entry",
+//     "6 entry",     "7 entry",      "8 entry",     "9 entry", "10 entry",
 
-struct simstatus simstatus;
+// };
+// const char *console_history_buffer[24];
+char console_history_buffer[24][1024];
 
-char *sim_request(char *command) {
-    char response[20];
-    // response = await_serial_rec(command);
-    strcpy(response, "__AT____OK\0");
-    char *str = malloc(20 * sizeof(char));
-    strcpy(str, response);
-    return str;
-}
-
-int is_OK(char command[]) {
-    if (strstr(command, "____OK") != NULL) {
-        return 1;
+void print_history() {
+    for (int i = 0; i < HIST_LENGTH; i++) {
+        printf("%d: %s\n", i, console_history_buffer[i]);
     }
-    return 0;  // else
 }
 
-int comp_request(char command[], char expect[]) {
-    char *response = sim_request(command);
-    // char response[] = "__AT____OK";
-    if (strcmp(response, expect) == 0) {
-        // free(response);
-        return 1;
+// void populate_history() {
+//     for (int i = 0; i < HIST_LENGTH; i++) {
+//         // form_values[i] = (char *)calloc(100, sizeof(char *));
+//         console_history_buffer[i] = (char *)malloc(1024);
+//     }
+// }
+
+void get_history(char *strings[]) {  //
+    // return console_history_buffer;
+    // ^^ bad practice: char **get_history(){} with char** temp = get_history();
+    for (int i = 0; i < HIST_LENGTH; i++) {
+        strings[i] = console_history_buffer[i];
     }
-    // free(response);
-    return 0;
 }
 
-// int comp_request() { return 0; };
-
-int sim_is_ok() {
-    if ((strstr("__at+cpin?___+CPIN: READY____OK", "READY") != NULL) &&
-        (comp_request("AT\r", "__AT____OK") == 1)) {
-        return 1;
+void history_append(char *string) {
+    // shift right and add to 0
+    for (int k = HIST_LENGTH; k > 0; k--) {
+        // console_history_buffer[k] = console_history_buffer[k - 1];
+        strcpy(console_history_buffer[k], console_history_buffer[k - 1]);
     }
-    return 0;
-}
-int sim_get_batt() { return 0; }
-int sim_get_sig_strength() { return 0; }
-void sim_get_conn(char *str) {  //
-    strcpy(str, "NO-CONN\0");
-}
-
-void sim_get_status(struct simstatus *ss) {
-    static int at;
-    static int batt;
-    static int st;
-    static char conn[20];
-    at = sim_is_ok();
-    // batt = sim_get_batt();
-    // st = sim_get_sig_strength();
-    // sim_get_conn(conn);
-    ss->at = at;
-    // ss->last_stat = last_stat;
-    // ss->batt = batt;
-    // ss->sig_strength = st;
-    // ss->sig_conn = conn;
-}
-
-void sim_tester_status() {
-    // "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX";
-    // strcat(*title, "AT:"); // works but bad
-    static char title[100];
-    static int ticks = 101;
-
-    if (ticks > 100) {  // 100 ticks ~= 2.5s (3/6/21)
-        ticks = 0;
-        // uart_printf("updating title\n");
-        sim_get_status(&simstatus);
-
-        char at[5];
-        if (simstatus.at == 1) {
-            strcpy(at, "OK");
-        } else {
-            strcpy(at, "ERR");
-        }
-
-        char last_stat[5];
-        if (simstatus.last_stat == 1) {
-            strcpy(last_stat, "OK");
-        } else {
-            strcpy(last_stat, "ERR");
-        }
-
-        snprintf(title, sizeof title, "%s%-2s %s%-2s %s%-3d %s%-3d %s%-6s",
-                 "AT:", at, "STAT:", last_stat, "BATT:", simstatus.batt,
-                 "SIG:", simstatus.sig_strength, "CONN:", simstatus.sig_conn);
-
-        // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
-    }
-    ticks++;
-
-    // screen_draw_title(title);
-    printf("%s", title);
+    // console_history_buffer[0] = string;
+    strcpy(console_history_buffer[0], string);
 }
 
 int main() {
     printf("\nA sample C program\n\n");
-    sim_tester_status();
-    // int ret = is_OK("yoyo____OK");
-    // printf("%d", ret);
-    printf("\n\n");
+    // print_history();
+    // populate_history();
+    print_history();
+    char *new = "NEW";
+    history_append(new);
+    print_history();
+
+    // char *temp = get_history();
+    // for (int i = 0; i < 20; i++) {
+    //     printf("%d: %s\n", i, temp[i]);
+    // }
+
+    char *hist[20];
+    get_history(hist);
+    for (int i = 0; i < 20; i++) {
+        printf("%d: %s\n", i, hist[i]);
+        // screen_draw_page_text(&page1, hist[i]);
+    }
+
     return 0;
 }

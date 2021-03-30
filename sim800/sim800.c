@@ -10,7 +10,8 @@ int last_stat = 0;
 int com_lock = 0;
 
 #define HIST_LENGTH 20
-char *console_history_buffer[24];
+// char *console_history_buffer[24]; // const??
+char console_history_buffer[24][1024];
 
 void print_history() {
     for (int i = 0; i < HIST_LENGTH; i++) {
@@ -18,12 +19,12 @@ void print_history() {
     }
 }
 
-void populate_history() {
-    for (int i = 0; i < HIST_LENGTH; i++) {
-        // form_values[i] = (char *)calloc(100, sizeof(char *));
-        console_history_buffer[i] = (char *)malloc(100);
-    }
-}
+// void populate_history() {
+//     for (int i = 0; i < HIST_LENGTH; i++) {
+//         // form_values[i] = (char *)calloc(100, sizeof(char *));
+//         console_history_buffer[i] = (char *)malloc(1024);
+//     }
+// }
 
 void get_history(char *strings[]) {  //
     // return console_history_buffer;
@@ -36,13 +37,32 @@ void get_history(char *strings[]) {  //
 void history_append(char *string) {
     // shift right and add to 0
     for (int k = HIST_LENGTH - 1; k > 0; k--) {
-        console_history_buffer[k] = console_history_buffer[k - 1];
+        // console_history_buffer[k] = console_history_buffer[k - 1];
+        strcpy(console_history_buffer[k], console_history_buffer[k - 1]);
     }
-    console_history_buffer[0] = string;
+    // console_history_buffer[0] = string;
+    strcpy(console_history_buffer[0], string);
+}
+
+int is_OK(char response[]) {
+    if (strstr(response, "____OK") != NULL) {
+        return 1;
+    }
+    return 0;  // else
 }
 
 // char *serial_request(char *command, char *str)
 char *sim_request(char *command, char *response) {
+    // char response[1024] = {0};
+    // char *commanda;
+    // commanda = (char *)malloc((100) * sizeof(char)); /*+1 for '\0' character
+    // */ char *responsea; responsea =
+    //     (char *)malloc((1024) * sizeof(char)); /*+1 for '\0' character */
+    // strcpy(commanda, command);
+
+    // char *commanda = strdup(command);
+    // char *responsea = strdup(response);
+
     history_append(command);
 
     // char command[100] = {0};
@@ -54,7 +74,11 @@ char *sim_request(char *command, char *response) {
     // char *str = malloc(20 * sizeof(char));
     // strcpy(str, response);
     history_append(response);
+    last_stat = is_OK(response);
     // print_history();
+    // strcpy(response, response);
+    // free(commanda);
+    // free(responsea);
     return response;
 }
 
@@ -71,13 +95,6 @@ int comp_request(char command[], char expect[]) {
     return 0;
 }
 
-int is_OK(char command[]) {
-    if (strstr(command, "____OK") != NULL) {
-        return 1;
-    }
-    return 0;  // else
-}
-
 int at_is_ok() {
     char response[1024] = {0};
     sim_request("AT\r", response);
@@ -92,8 +109,64 @@ int sim_is_ok() {
     }
     return 0;
 }
-int sim_get_batt() { return 0; }
-int sim_get_sig_strength() { return 0; }
+int sim_get_batt() {
+    char response[1024] = {0};
+    sim_request("AT+CBC\r", response);
+
+    char find = ':';
+    const char *ptr = strchr(response, find);
+    if (ptr) {
+        int index = ptr - response;
+
+        // printf("%c", response[index + 2]);
+        const int stringLen = strlen(response);
+        char currentChar;
+        char stripped[128] = {0};
+        int j = 0;
+        for (int i = 0; i < stringLen; ++i) {
+            currentChar = response[index + 4 + i];
+            if ((currentChar >= '0') && (currentChar <= '9')) {
+                stripped[j++] = currentChar;
+            } else {
+                break;
+            }
+        }
+        // int x = response[index + 2] - '0';
+        int x = atoi(stripped);
+        // printf("%d", x);
+        return x;
+    }
+    return 0;
+}
+int sim_get_sig_strength() {
+    char response[1024] = {0};
+    sim_request("AT+CSQ\r", response);  // __at+csq___+CSQ: 7,0____OK
+
+    char find = ':';
+    const char *ptr = strchr(response, find);
+    if (ptr) {
+        int index = ptr - response;
+
+        // printf("%c", response[index + 2]);
+        const int stringLen = strlen(response);
+        char currentChar;
+        char stripped[128] = {0};
+        int j = 0;
+        for (int i = 0; i < stringLen; ++i) {
+            currentChar = response[index + 2 + i];
+            if ((currentChar >= '0') && (currentChar <= '9')) {
+                stripped[j++] = currentChar;
+            } else {
+                break;
+            }
+        }
+        // int x = response[index + 2] - '0';
+        int x = atoi(stripped);
+        // printf("%d", x);
+        return x;
+    }
+    return 0;
+}
 
 // https://stackoverflow.com/questions/14416759/return-char-string-from-a-function/14416798
 // although this works, I find the following to work better. maybe not easier,
@@ -105,7 +178,15 @@ int sim_get_sig_strength() { return 0; }
 // }
 
 void sim_get_conn(char *str) {  //
-    strcpy(str, "NO-CONN\0");
+    char response[1024] = {0};
+    char foundstr[20] = {0};
+    sim_request("AT+COPS?\r", response);  //
+    if (sscanf(response, "%*[^\"]\"%[^\"]\"", foundstr) == 1) {
+        // printf("%s", foundstr);
+        strcpy(str, foundstr);
+    } else {
+        strcpy(str, "NO-CONN\0");
+    }
 }
 
 void sim_get_status(struct simstatus *ss) {
@@ -128,33 +209,49 @@ void sim_get_status(struct simstatus *ss) {
 }
 
 // https://github.com/cristiansteib/Sim800l/blob/master/Sim800l.cpp
-// returns 0 for processing, 1 for success, -1 for error?
+// returns 0 for error, 1 for success, 2 for processing?
 // see https://github.com/carrascoacd/ArduinoSIM800L/blob/master/src/Result.h
 // for better implimentation
-int sim_send_text() {
+int sim_send_text(char number[], char message[]) {
     static bool is_sending = 0;
-    static bool step = 0;
+    static int step = 0;
     // uart_printf("a\n");
 
     if (is_sending == 0) {
-        // uart_printf("b0\n");
-        // populate_history();
-        // msleep(1000);
-        // pass, let screen update?
         is_sending = 1;
-        return 0;
+        step = 0;
+        return 2;
     } else if (is_sending == 1) {
         if (step == 0) {
-            // uart_printf("b1 Step 0\n");
-            if (sim_is_ok() == 1) {
-                // uart_printf("response is really okay.\n");
-                is_sending = 0;
-                return 1;
+            char response[1024] = {0};
+            sim_request("AT+CMGF=1\r", response);
+            if (last_stat == 1) {
+                step++;
+                return 2;
             } else {
                 return 0;
             }
-        } else if (step > 0) {
+        } else if (step == 1) {
+            char response[1024] = {0};
+            char request[1024] = {0};
+            strcpy(request, "AT+CMGS=\"");
+            strcat(request, number);
+            strcat(request, "\"\r");
+            sim_request(request, response);
+            step++;
             return 2;
+        } else if (step == 2) {
+            char response[1024] = {0};
+            sim_request(message, response);  // send message
+            uart_printf("%c", 26);           // ctrl+z
+            step++;
+            return 2;
+        } else if (step >= 3) {
+            if (at_is_ok() == 1) {  // wait for AT OK
+                step = 0;
+                is_sending = 0;
+                return 0;
+            }
         }
     }
 
