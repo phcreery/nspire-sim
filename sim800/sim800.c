@@ -53,45 +53,27 @@ int is_OK(char response[]) {
 
 // char *serial_request(char *command, char *str)
 char *sim_request(char *command, char *response) {
-    // char response[1024] = {0};
-    // char *commanda;
-    // commanda = (char *)malloc((100) * sizeof(char)); /*+1 for '\0' character
-    // */ char *responsea; responsea =
-    //     (char *)malloc((1024) * sizeof(char)); /*+1 for '\0' character */
-    // strcpy(commanda, command);
-
-    // char *commanda = strdup(command);
-    // char *responsea = strdup(response);
-
     history_append(command);
-
-    // char command[100] = {0};
-    // char response[1024] = {0};
     serial_request(command, response);
     // strcpy(response, "__AT__OK__\0");
-    // history_append(response);
-
-    // char *str = malloc(20 * sizeof(char));
-    // strcpy(str, response);
     history_append(response);
     last_stat = is_OK(response);
     // print_history();
-    // strcpy(response, response);
-    // free(commanda);
-    // free(responsea);
     return response;
 }
 
+void sim_send(char *command) {
+    history_append(command);
+    serial_send(command);
+}
+
 int comp_request(char command[], char expect[]) {
-    // char command[] = "AT?\0";
     char response[1024] = {0};
     sim_request(command, response);
     if (strcmp(response, expect) == 0) {
         // uart_printf("response is okay.\n");
-        // free(response);
         return 1;
     }
-    // free(response);
     return 0;
 }
 
@@ -117,8 +99,6 @@ int sim_get_batt() {
     const char *ptr = strchr(response, find);
     if (ptr) {
         int index = ptr - response;
-
-        // printf("%c", response[index + 2]);
         const int stringLen = strlen(response);
         char currentChar;
         char stripped[128] = {0};
@@ -133,7 +113,6 @@ int sim_get_batt() {
         }
         // int x = response[index + 2] - '0';
         int x = atoi(stripped);
-        // printf("%d", x);
         return x;
     }
     return 0;
@@ -146,8 +125,6 @@ int sim_get_sig_strength() {
     const char *ptr = strchr(response, find);
     if (ptr) {
         int index = ptr - response;
-
-        // printf("%c", response[index + 2]);
         const int stringLen = strlen(response);
         char currentChar;
         char stripped[128] = {0};
@@ -162,7 +139,6 @@ int sim_get_sig_strength() {
         }
         // int x = response[index + 2] - '0';
         int x = atoi(stripped);
-        // printf("%d", x);
         return x;
     }
     return 0;
@@ -180,9 +156,8 @@ int sim_get_sig_strength() {
 void sim_get_conn(char *str) {  //
     char response[1024] = {0};
     char foundstr[20] = {0};
-    sim_request("AT+COPS?\r", response);  //
-    if (sscanf(response, "%*[^\"]\"%[^\"]\"", foundstr) == 1) {
-        // printf("%s", foundstr);
+    sim_request("AT+COPS?\r", response);
+    if (sscanf(response, "%*[^\"]\"%[^\"]\"", foundstr) == 1) {  // found it
         strcpy(str, foundstr);
     } else {
         strcpy(str, "NO-CONN\0");
@@ -232,25 +207,23 @@ int sim_send_text(char number[], char message[]) {
                 return 0;
             }
         } else if (step == 1) {
-            char response[1024] = {0};
             char request[1024] = {0};
             strcpy(request, "AT+CMGS=\"");
             strcat(request, number);
             strcat(request, "\"\r");
-            sim_request(request, response);
+            sim_send(request);
             step++;
             return 2;
         } else if (step == 2) {
-            char response[1024] = {0};
-            sim_request(message, response);  // send message
-            uart_printf("%c", 26);           // ctrl+z
+            sim_send(message);      // send message
+            uart_printf("%c", 26);  // ctrl+z
             step++;
             return 2;
         } else if (step >= 3) {
             if (at_is_ok() == 1) {  // wait for AT OK
                 step = 0;
                 is_sending = 0;
-                return 0;
+                return 1;
             }
         }
     }
