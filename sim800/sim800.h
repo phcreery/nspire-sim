@@ -8,6 +8,14 @@
  * It tells the compiler that the function exists somewhere.
  */
 
+/* Result codes */
+enum Result {
+    ERROR = 0,
+    SUCCESS = 1,
+    WORKING = 2,
+    UNKNOWN = 3,
+};
+
 struct simstatus {
     int at;
     int last_stat;
@@ -18,7 +26,7 @@ struct simstatus {
 };
 
 void sim_get_status();
-int sim_send_text();
+enum Result sim_send_text();
 void get_history();
 void populate_history();
 
@@ -44,12 +52,5 @@ AT+CMGF=1
 AT+CMGS="MOBILE NO."
 (message)   <ctrl+z> / uart_printf("%c", 26);
 */
-
-/* Result codes */
-enum ResultCode {
-    ERROR = 0,
-    SUCCESS = 1,
-    WORKING = 2,
-};
 
 #endif

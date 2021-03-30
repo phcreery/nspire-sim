@@ -85,8 +85,8 @@ void page_sms_sending() {
 
     screen_draw_page_title(&page1, "SENDING...");
     // uart_printf("Sending...\n");
-    int status;
-    status = sim_send_text(form_values[0], form_values[1]);
+    // int status;
+    enum Result status = sim_send_text(form_values[0], form_values[1]);
 
     char* hist[20];
     get_history(hist);
@@ -99,9 +99,9 @@ void page_sms_sending() {
     // uart_printf("status: ");
     // uart_printf("%d\n", status);
 
-    if (status == 1) {  // success
+    if (status == SUCCESS) {  // success
         strcpy(page, "SMS SEND SUCCESS");
-    } else if (status == 0) {  // fail
+    } else if (status == ERROR) {  // fail
         strcpy(page, "attach");
     }
     msleep(1000);

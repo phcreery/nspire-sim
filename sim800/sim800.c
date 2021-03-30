@@ -10,6 +10,7 @@ int last_stat = 0;
 int com_lock = 0;
 
 #define HIST_LENGTH 20
+// https://stackoverflow.com/questions/1088622/how-do-i-create-an-array-of-strings-in-c
 // char *console_history_buffer[24]; // const??
 char console_history_buffer[24][1024];
 
@@ -157,6 +158,7 @@ void sim_get_conn(char *str) {  //
     char response[1024] = {0};
     char foundstr[20] = {0};
     sim_request("AT+COPS?\r", response);
+    // find word between quotes
     if (sscanf(response, "%*[^\"]\"%[^\"]\"", foundstr) == 1) {  // found it
         strcpy(str, foundstr);
     } else {
@@ -187,9 +189,10 @@ void sim_get_status(struct simstatus *ss) {
 // returns 0 for error, 1 for success, 2 for processing?
 // see https://github.com/carrascoacd/ArduinoSIM800L/blob/master/src/Result.h
 // for better implimentation
-int sim_send_text(char number[], char message[]) {
+enum Result sim_send_text(char number[], char message[]) {
     static bool is_sending = 0;
     static int step = 0;
+    // enum Result result = SUCCESS;
     // uart_printf("a\n");
 
     if (is_sending == 0) {
@@ -202,9 +205,9 @@ int sim_send_text(char number[], char message[]) {
             sim_request("AT+CMGF=1\r", response);
             if (last_stat == 1) {
                 step++;
-                return 2;
+                return WORKING;
             } else {
-                return 0;
+                return ERROR;
             }
         } else if (step == 1) {
             char request[1024] = {0};
@@ -213,22 +216,22 @@ int sim_send_text(char number[], char message[]) {
             strcat(request, "\"\r");
             sim_send(request);
             step++;
-            return 2;
+            return WORKING;
         } else if (step == 2) {
             sim_send(message);      // send message
             uart_printf("%c", 26);  // ctrl+z
             step++;
-            return 2;
+            return WORKING;
         } else if (step >= 3) {
             if (at_is_ok() == 1) {  // wait for AT OK
                 step = 0;
                 is_sending = 0;
-                return 1;
+                return SUCCESS;
             }
         }
     }
 
-    return 0;
+    return UNKNOWN;
 }
 
 // https://github.com/carrascoacd/ArduinoSIM800L
