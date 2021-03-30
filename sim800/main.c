@@ -30,7 +30,6 @@ void page_attach() {
     struct page page1 = screen_make_page();
     screen_clear_page(page1);
     screen_draw_page_text(&page1, "ATTACH SIM & PRESS (enter)");
-    // screen_handle_selection(&page1, 0, &selected);
     screen_handle_page(&page1, &selected, &page, "attach", "landing");
 }
 
@@ -41,7 +40,7 @@ void page_landing() {
     int n = sizeof(menu_options) / sizeof(menu_options[0]);
     screen_draw_page_title(&page1, "OPTIONS");
     screen_draw_menu(&page1, menu_options, n, selected);
-    // screen_handle_menu(menu_options, &page, n, &selected);
+
     screen_handle_selection(&page1, n, &selected);
     screen_handle_page(&page1, &selected, &page, "attach",
                        menu_options[selected]);
@@ -57,7 +56,6 @@ void page_sms() {
     screen_draw_page_title(&page1, "SMS OPTIONS");
     screen_draw_menu(&page1, menu_options, n, selected);
 
-    // screen_handle_menu(menu_options, &page, &selected);
     screen_handle_selection(&page1, 2, &selected);
     screen_handle_page(&page1, &selected, &page, "landing",
                        menu_options[selected]);
@@ -84,8 +82,7 @@ void page_sms_sending() {
     screen_clear_page(page1);
 
     screen_draw_page_title(&page1, "SENDING...");
-    // uart_printf("Sending...\n");
-    // int status;
+
     enum Result status = sim_send_text(form_values[0], form_values[1]);
 
     char* hist[20];
@@ -95,13 +92,9 @@ void page_sms_sending() {
         screen_draw_page_text(&page1, hist[i]);
     }
 
-    // uart_printf("%.*s\n", 20, resp);
-    // uart_printf("status: ");
-    // uart_printf("%d\n", status);
-
-    if (status == SUCCESS) {  // success
+    if (status == SUCCESS) {
         strcpy(page, "SMS SEND SUCCESS");
-    } else if (status == ERROR) {  // fail
+    } else if (status == ERROR) {
         strcpy(page, "attach");
     }
     msleep(1000);
@@ -125,7 +118,6 @@ void page_sms_send_success() {
 
 void update_title() {
     // "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX";
-    // strcat(*title, "AT:"); // works but bad
     static char title[100];
     static int ticks = 100;
 
@@ -159,11 +151,8 @@ void update_title() {
                  "%s%-2s %s%-2s %s%-2s %s%-2d %s%-2d %s%-6s", "AT:", at,
                  "STAT:", last_stat, "SIM:", sim, "BAT:", simstatus.batt,
                  "SIG:", simstatus.sig_strength, "CON:", simstatus.sig_conn);
-
-        // strcpy(title, "AT:ERR Status:ERR Batt:XXX Sig:XXX Conn:XXXXXXX");
     }
     ticks++;
-
     screen_draw_title(title);
 }
 

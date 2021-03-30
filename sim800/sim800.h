@@ -8,6 +8,7 @@
  * It tells the compiler that the function exists somewhere.
  */
 
+// https://stackoverflow.com/questions/742699/returning-an-enum-from-a-function-in-c
 /* Result codes */
 enum Result {
     ERROR = 0,

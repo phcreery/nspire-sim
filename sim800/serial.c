@@ -5,7 +5,6 @@
 
 // #define emulate_serial
 
-// int key_already_pressed = 0;
 char oldinput[100] = {0};
 char voidlist[100] = {0};
 int dispInput = 0;
@@ -54,7 +53,6 @@ char *uart_getsn_mdf(char *str, int num) {
         while (uart_ready() &&
                releaseFunc())  // while (uart_ready() && releaseFunc())
         {
-            // nio_puts("UART ready...");
             if (i == max) {
                 str[i] = 0;
                 return str;

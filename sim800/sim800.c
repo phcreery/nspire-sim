@@ -10,6 +10,7 @@ int last_stat = 0;
 int com_lock = 0;
 
 #define HIST_LENGTH 20
+
 // https://stackoverflow.com/questions/1088622/how-do-i-create-an-array-of-strings-in-c
 // char *console_history_buffer[24]; // const??
 char console_history_buffer[24][1024];
@@ -20,6 +21,8 @@ void print_history() {
     }
 }
 
+// discarded after issues with pointer being overwritten
+// https://github.com/phcreery/nspire-sim/commit/e6670da922716528b6ca090e492e8948a3f2d361
 // void populate_history() {
 //     for (int i = 0; i < HIST_LENGTH; i++) {
 //         // form_values[i] = (char *)calloc(100, sizeof(char *));
@@ -72,7 +75,6 @@ int comp_request(char command[], char expect[]) {
     char response[1024] = {0};
     sim_request(command, response);
     if (strcmp(response, expect) == 0) {
-        // uart_printf("response is okay.\n");
         return 1;
     }
     return 0;
@@ -146,14 +148,6 @@ int sim_get_sig_strength() {
 }
 
 // https://stackoverflow.com/questions/14416759/return-char-string-from-a-function/14416798
-// although this works, I find the following to work better. maybe not easier,
-// but when called repeately, memory issues
-// char *sim_get_conn() {
-//     char *str = malloc(10 * sizeof(char));
-//     strcpy(str, "NO-CONN\0");
-//     return str;
-// }
-
 void sim_get_conn(char *str) {  //
     char response[1024] = {0};
     char foundstr[20] = {0};
@@ -192,8 +186,6 @@ void sim_get_status(struct simstatus *ss) {
 enum Result sim_send_text(char number[], char message[]) {
     static bool is_sending = 0;
     static int step = 0;
-    // enum Result result = SUCCESS;
-    // uart_printf("a\n");
 
     if (is_sending == 0) {
         is_sending = 1;
