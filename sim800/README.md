@@ -1,13 +1,11 @@
-First
+First install ndless-sdk and nspire-io
+
+
 ```
 export PATH="/mnt/c/Users/phcre/Documents/TI-Nspire/SDK/Ndless/ndless-sdk/toolchain/install/bin:/mnt/c/Users/phcre/Documents/TI-Nspire/SDK/Ndless/ndless-sdk/bin:${PATH}"
+make clean
+make
 ```
-mske
-
-SIM AT
-
-ATE0 ==> echo OFF
-ATE1 ==> echo ON
 
 
 Resources:
@@ -19,7 +17,7 @@ https://github.com/TheStaticTurtle/nspire-communication
 https://blog.thestaticturtle.fr/ti-nspire-sms-shield/
 
 
-
+```
 int main(void)
 {
    assert_ndless_rev(874);
@@ -114,3 +112,4 @@ int main(void)
    
    return 0;
 }
+'''
