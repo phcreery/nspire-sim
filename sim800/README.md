@@ -9,12 +9,12 @@ make
 
 
 Resources:
-https://hackspire.org/index.php/C_and_assembly_development_introduction
-https://tiplanet.org/forum/viewtopic.php?t=18130&p=198701&lang=en
-https://github.com/ndless-nspire/Ndless/tree/master/ndless-sdk/samples
-https://github.com/compujuckel/nspire-io
-https://github.com/TheStaticTurtle/nspire-communication
-https://blog.thestaticturtle.fr/ti-nspire-sms-shield/
+- https://hackspire.org/index.php/C_and_assembly_development_introduction
+- https://tiplanet.org/forum/viewtopic.php?t=18130&p=198701&lang=en
+- https://github.com/ndless-nspire/Ndless/tree/master/ndless-sdk/samples
+- https://github.com/compujuckel/nspire-io
+- https://github.com/TheStaticTurtle/nspire-communication
+- https://blog.thestaticturtle.fr/ti-nspire-sms-shield/
 
 
 ```
