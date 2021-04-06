@@ -8,7 +8,7 @@ Where the main code lies.
 
 ### /serial
 
-A simple serial console for debugging the nspire IO. Also axctas as a library for /sim800
+A simple serial console for debugging the nspire IO. Also acts as as a library for /sim800
 
 ### /lvgl-testing
 
